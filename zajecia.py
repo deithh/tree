@@ -43,11 +43,11 @@ def parser(command: str) -> None:
                 for key in map(int, args):
                     state = tree.delete(key)
                     if state:
-                        input(f"Usunięto węzeł o kluczu {key} [any]: ")
+                        input(f"Node {key} deleted [any]: ")
                     else:
-                        input(f'Nie znaleziono węzła o kluczu {key} [any]: ')
+                        input(f'Node {key} not found[any]: ')
             except:
-                input("Błąd [any]:")
+                input("Error [any]:")
             break
 
         elif instruction in ['heigth', "height"]:
@@ -72,7 +72,7 @@ def parser(command: str) -> None:
             print("height - print initial tree height")
             print("dsw - tree balance")
             print('instructions can be chained [,] in except of del')
-            input("[any]")
+            input("[any]: ")
         else:
             input("Command invalid [any]: ")
 
