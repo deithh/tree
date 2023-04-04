@@ -54,10 +54,13 @@ def parser(command: str) -> None:
             print("[WARN] tree height is not updated after node deletion")
             input(f"Tree height = {tree.height} [any]:")
 
-
         elif instruction in ['deltree', 'deletetree', 'removetree', 'free']:
             tree.free()
             input(f"Tree is empty now [any]: ")
+
+        elif instruction in ['balance', 'dsw']:
+            tree.dsw()
+            input(f"Tree is balanced now [any]: ")
 
         elif instruction in ['h', 'help']:
             print("min - find min node in tree and print path")
@@ -67,6 +70,7 @@ def parser(command: str) -> None:
             print("preorder - print tree pre order traversal")
             print("in order - print tree in order traversal")
             print("height - print initial tree height")
+            print("dsw - tree balance")
             print('instructions can be chained [,] in except of del')
             input("[any]")
         else:

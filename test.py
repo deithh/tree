@@ -2,11 +2,13 @@ from models import *
 import networkx as nx
 import matplotlib.pyplot as plt
 
-array = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-np.random.shuffle(array)
-tree = BSTtree(array)
-# tree.delete(1)
+array = [i for i in range(35)]
+tree = AVLtree(array)
 
+tree.delete(7)
+tree.delete(11)
+tree.delete(12)
+tree.delete(13)
 
 tree.list_nodes()
 edges = tree.edges

@@ -12,8 +12,6 @@ def gen_data(n: int, shuffle: bool = False) -> list:
 
 
 class Node:
-    key = None
-
     def __init__(self, key: int, parent: Optional[ND] = None) -> None:
         self.key = key
         self.parent = parent
@@ -40,10 +38,15 @@ class AVLnode(Node):
         self.factor: int = 0
         self.h: int = 0
 
+    def update(self) -> int:
+        self.factor = (self.left.h if self.left else - 1) - (self.right.h if self.right else - 1)
+        self.h = max(self.left.h if self.left else -1, self.right.h if self.right else -1) + 1
+        return self.factor
+
 
 class Tree:
     def __init__(self, node_type: Type[ND] = Node):
-        self.root: Optional[Node] = None
+        self.root: Optional[ND] = None
         self.h: int = -1
         self.node_type = node_type
         self._pre_order: list = []
@@ -79,6 +82,8 @@ class Tree:
         self._bin_halv(array, pivot + 1, end, node)
 
     def bin_halv(self, array: list) -> None:
+        if not len(array):
+            return
         self._bin_halv(sorted(array), 0, len(array) - 1)
         self.h = int(math.log2(len(array))) + 1
 
@@ -88,45 +93,95 @@ class Tree:
 
     # ______________________________ROTATIONS
 
-    def _rr(self, node):
-
-        gparent = node.parent
+    def _rr(self, key: int | ND) -> None:
+        if type(key) == int:
+            if (node := self.search_node(key)) is None:
+                return
+        else:
+            node = key
         new_mom = node.right
-        new_left = node
+        prev_mom = node
 
-        if gparent.left == node:
-            gparent.left = new_mom
-        else:
-            gparent.right = new_mom
+        if prev_mom is self.root:
+            self.root = new_mom
+
+        if gparent := prev_mom.parent:
+            if gparent.left == prev_mom:
+                gparent.left = new_mom
+            else:
+                gparent.right = new_mom
 
         new_mom.parent = gparent
-        new_mom.left = new_left
-        new_left.parent = new_mom
-        new_left.right = None
+        prev_mom.right = new_mom.left
+        new_mom.left = prev_mom
+        prev_mom.parent = new_mom
 
-    def _rl(self, node):
-        pass
+        if prev_mom.right:
+            prev_mom.right.parent = prev_mom
 
-    def _ll(Self, node):
-        gparent = node.parent
+    def _ll(self, key: int | ND) -> None:
+        if type(key) == int:
+            if (node := self.search_node(key)) is None:
+                return
+        else:
+            node = key
         new_mom = node.left
-        new_right = node
+        prev_mom = node
 
-        if gparent.left == node:
-            gparent.left = new_mom
-        else:
-            gparent.right = new_mom
+        if prev_mom is self.root:
+            self.root = new_mom
+
+        if gparent := prev_mom.parent:
+            if gparent.left == prev_mom:
+                gparent.left = new_mom
+            else:
+                gparent.right = new_mom
 
         new_mom.parent = gparent
-        new_mom.right = new_right
-        new_right.parent = new_mom
-        new_right.left = None
+        prev_mom.left = new_mom.right
+        new_mom.right = prev_mom
+        prev_mom.parent = new_mom
 
-    def _lr(self, node):
-        pass
+        if prev_mom.left:
+            prev_mom.left.parent = prev_mom
 
+    def straighten(self) -> int:
+        h = 0
+        if (node := self.root) is None:
+            return h
+        while node:
+            if node.left:
+                self._ll(node)
+                node = node.parent
+            else:
+                node = node.right
+                h += 1
+        return h
+
+    def dsw(self) -> None:
+        n = self.straighten()  # nodes count
+        lim = n - self._expected(n)
+        self.compress(lim)
+        n-=lim
+        while (n := n//2) >= 1:
+            self.compress(n)
+
+    def compress(self, times: int) -> None:
+        node = self.root
+        for i in range(times):
+            self._rr(node)
+            node = node.parent
+            node = node.right
+            if node is None: break
+            if node.right is None: break
+
+    @staticmethod
+    def _expected(count: int) -> int:
+        h = math.ceil(math.log2(count))
+        return 2**(h-1) - 1
     # ____________________________________________GRAPH DATA
     # pre order traversal save edges in inner list
+
     def _list_nodes(self, node: ND) -> None:
         self.nodes[node.key] = f"{node.key}"
         if node.left is not None:
@@ -164,7 +219,8 @@ class Tree:
                 break
 
     def traversal_pre_order(self) -> list:
-        if self.root is not None: self._traversal_pre_order_i(self.root)
+        if self.root is not None:
+            self._traversal_pre_order_i(self.root)
         path = self._pre_order.copy()
         self.collect_garbage()
         return path
@@ -231,7 +287,8 @@ class Tree:
         return node.key, path
 
     def search_min(self) -> Tuple[Optional[int], Optional[list]]:
-        if self.root is None: return None, None
+        if self.root is None:
+            return None, None
         node, path = self.root, [self.root.key]
 
         while node.left is not None:
@@ -244,7 +301,8 @@ class Tree:
         node = self.root
 
         while node:
-            if key == node.key: return node
+            if key == node.key:
+                return node
             if key > node.key:
                 node = node.right
             else:
@@ -262,21 +320,26 @@ class Tree:
                 current = current.left
             return current
 
-    # ______________________NODE MANIPILATION
+    # ______________________NODE MANIPULATION
     def _del_node(self, node: ND) -> None:
         if node is self.root:
             self.root = None
         node.del_node()
 
-    def delete(self, key: int) -> bool:
-        if (node := self.search_node(key)) is None:
-            return False
+    def delete(self, key: int | ND) -> bool:
+        node = key
+        if type(key) == int:
+            if (node := self.search_node(key)) is None:
+                return False
+        parent = node.parent
+
         if node.left is None and node.right is None:
             node.del_node()
+
         elif node.left is not None and node.right is not None:
             _next = self.search_succ(node)
-            self.delete(_next.key)
             node.key = _next.key
+            self.delete(_next)
 
         else:
             if node.left is None:
@@ -298,6 +361,8 @@ class Tree:
         h = 0
         while node is not None:
             h += 1
+            if key == node.key:
+                return
             if key < node.key:
                 node, parent = node.left, node
             else:
@@ -331,31 +396,38 @@ class AVLtree(Tree):
             self.edges.append((node.key, node.right.key))
             self._list_nodes(node.right)
 
-    def back_prop(self, node: Optional[AVLnode] = None) -> None:  # post order initial propagation of balance factor
+    def _back_prop(self, node: Optional[AVLnode] = None) -> None:  # post order initial propagation of balance factor
         if node is None:
             node = self.root
 
-        l, r = -1, -1
-
         if node.left is not None:
-            self.back_prop(node.left)
-            l = node.left.h
+            self._back_prop(node.left)
 
         if node.right is not None:
-            self.back_prop(node.right)
-            r = node.right.h
+            self._back_prop(node.right)
 
-        node.h = max(l, r) + 1
-        node.factor = l - r
+        node.update()
 
-    def delete(self, key: int) -> bool:
-        if (node := self.search_node(key)) is None: return False
+    def back_prop(self):
+        node = self.root
+        if node is None:
+            return
+        self._back_prop(node)
+
+    def delete(self, key: int | ND) -> bool:
+        node = key
+        if type(key) == int:
+            if (node := self.search_node(key)) is None:
+                return False
+        parent = node.parent
+
         if node.left is None and node.right is None:
             node.del_node()
+
         elif node.left is not None and node.right is not None:
             _next = self.search_succ(node)
-            self.delete(_next.key)
             node.key = _next.key
+            self.delete(_next)
 
         else:
             if node.left is None:
@@ -365,20 +437,112 @@ class AVLtree(Tree):
             node.left = _next.left
             node.right = _next.right
             node.key = _next.key
-        self.back_prop()
+
+        while parent:
+            if (factor := parent.update()) in [1, -1]:
+                pass
+            elif factor in [-2, 2]:
+                self.rotate(parent)
+                pass
+            parent = parent.parent
         return True
+
+    def rotate(self, node: ND):
+        l, r = node.left.factor if node.left else - 1, node.right.factor if node.right else - 1
+        if node.left:
+
+            if node.factor == 2 and l == 1:
+                self._ll(node)
+            elif node.factor == 2 and l == -1:
+                self._lr(node)
+
+        elif node.right:
+            if node.factor == -2 and r == -1:
+                self._rr(node)
+            elif node.factor == -2 and r == 1:
+                self._rl(node)
+
+
+    def _rr(self, key: int | ND) -> None:
+        if type(key) == int:
+            if (node := self.search_node(key)) is None:
+                return
+        else:
+            node = key
+        new_mom = node.right
+        prev_mom = node
+
+        if prev_mom is self.root:
+            self.root = new_mom
+
+        if gparent := prev_mom.parent:
+            if gparent.left == prev_mom:
+                gparent.left = new_mom
+            else:
+                gparent.right = new_mom
+
+        new_mom.parent = gparent
+        prev_mom.right = new_mom.left
+        new_mom.left = prev_mom
+        prev_mom.parent = new_mom
+
+        if prev_mom.right:
+            prev_mom.right.parent = prev_mom
+
+        prev_mom.update()
+        new_mom.update()
+
+    def _ll(self, key: int | ND) -> None:
+        if type(key) == int:
+            if (node := self.search_node(key)) is None:
+                return
+        else:
+            node = key
+        new_mom = node.left
+        prev_mom = node
+
+        if prev_mom is self.root:
+            self.root = new_mom
+
+        if gparent := prev_mom.parent:
+            if gparent.left == prev_mom:
+                gparent.left = new_mom
+            else:
+                gparent.right = new_mom
+
+        new_mom.parent = gparent
+        prev_mom.left = new_mom.right
+        new_mom.right = prev_mom
+        prev_mom.parent = new_mom
+
+        if prev_mom.left:
+            prev_mom.left.parent = prev_mom
+        prev_mom.update()
+        new_mom.update()
+
+    def _rl(self, key: int | ND) -> None:
+        node = key
+        if type(key) == int:
+            node = self.search_node(key)
+        self._ll(node.right)
+        self._rr(node)
+
+    def _lr(self, key: int | ND) -> None:
+        node = key
+        if type(key) == int:
+            node = self.search_node(key)
+        self._rr(node.left)
+        self._ll(node)
+
+    def dsw(self):
+        super().dsw()
+        self.back_prop()
 
 
 class BSTtree(Tree):
     def __init__(self, array: list):
         super().__init__(Node)
         self.build_tree(array)
-
-    def straighten(self) -> None:
-        pass
-
-    def dsw(self) -> None:
-        self.straighten()
 
 
 ND: TypeAlias = Union[Node, AVLnode]
