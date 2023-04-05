@@ -11,7 +11,6 @@ def clear() -> None:
 
 # At end of line [possible commands]: indicates waiting for user action
 def parser(command: str) -> None:
-    global tree
     command = command.split(',')
     command = [i.lower() for i in command]
     command = [int(i) if i.isdigit() else i.replace(" ", "").replace("-", '') for i in command]
@@ -20,13 +19,15 @@ def parser(command: str) -> None:
         if instruction in ["findmax", 'searchmax', 'max']:
 
             max_val, path = tree.search_max()
-            if max_val: path = " -> ".join(map(str, path))
-            input(f"Max value is {max_val}\npath: {(path)} [any]: ")
+            if max_val:
+                path = " -> ".join(map(str, path))
+            input(f"Max value is {max_val}\npath: {path} [any]: ")
 
         elif instruction in ["findmin", 'searchmin', "min"]:
 
             min_val, path = tree.search_min()
-            if min_val: path = " -> ".join(map(str, path))
+            if min_val:
+                path = " -> ".join(map(str, path))
             input(f"Min value is {min_val}\npath: {path} [any]: ")
 
         elif instruction in ['inorder']:
@@ -78,8 +79,8 @@ def parser(command: str) -> None:
 
 
 def main() -> None:
-    sys.setrecursionlimit(10000)
     global tree
+    sys.setrecursionlimit(10000)
     menu: str = 'default'
     tree_type: str = ''
     array: list = []
@@ -95,13 +96,15 @@ def main() -> None:
             fail = False
             while 1:
                 clear()
-                if fail: print('I don\'t understand. use [avl/bst/exit]')
+                if fail:
+                    print('I don\'t understand. use [avl/bst/exit]')
                 temp = input("Choose tree type [avl/bst/exit]: ").lower()
                 if temp in ['avl', 'bst', 'exit']:
                     break
                 fail = True
 
-            if temp == 'exit': break
+            if temp == 'exit':
+                break
             if temp == 'avl':
                 tree_type = 'avl'
             else:
@@ -112,12 +115,14 @@ def main() -> None:
             fail = False
             while 1:
                 clear()
-                if fail: print('I don\'t understand. use [enter/gen/exit]')
+                if fail:
+                    print('I don\'t understand. use [enter/gen/exit]')
                 temp = input("Enter data or generate [enter/gen/exit]: ").lower()
                 if temp in ['gen', 'enter', 'exit']:
                     break
                 fail = True
-            if temp == 'exit': break
+            if temp == 'exit':
+                break
 
             menu = temp
 
@@ -125,20 +130,24 @@ def main() -> None:
             fail = False
             while 1:
                 clear()
-                if fail: print('I don\'t understand. use [n: int > 0]')
+                if fail:
+                    print('I don\'t understand. use [n: int > 0]')
                 temp = input("Enter number of nodes [n: int > 0/exit]: ").lower()
                 if temp == 'exit' or (temp.isdigit() and int(temp) > 0):
                     break
                 fail = True
-            if temp == 'exit': break
+            if temp == 'exit':
+                break
             n = int(temp)
             fail = False
             while 1:
                 clear()
-                if fail: print('I don\'t understand. use [y/n]')
+                if fail:
+                    print('I don\'t understand. use [y/n]')
                 temp = input("shuffle? [y/n]: ").lower()
                 if temp == 'y':
-                    if tree_type == 'avl': input("[WARN] AVL constructor will sort it anyway [any]: ")
+                    if tree_type == 'avl':
+                        input("[WARN] AVL constructor will sort it anyway [any]: ")
                     array = gen_data(n, shuffle=True)
                     break
                 if temp == 'n':
@@ -152,12 +161,14 @@ def main() -> None:
             fail = False
             while 1:
                 clear()
-                if fail: print('List contains no-integer values or empty list')
+                if fail:
+                    print('List contains no-integer values or empty list')
                 temp = input('Enter list of integers [int, int, .../exit]: ').split()
                 if temp == 'exit' or (all([x.lstrip('-').isdigit() for x in temp]) and len(temp)):
                     break
                 fail = True
-            if temp == 'exit': break
+            if temp == 'exit':
+                break
             array = list(map(int, temp))
             menu = 'check_input'
 
@@ -171,9 +182,11 @@ def main() -> None:
                 fail = False
                 while 1:
                     clear()
-                    if fail: print('I don\'t understand. use [y/n]')
+                    if fail:
+                        print('I don\'t understand. use [y/n]')
                     temp = input(
-                        "Repetitions in array are not allowed. Continue without them? \n[WARN] This will affect order of elements [y/n]: ").lower()
+                        "Repetitions in array are not allowed. Continue without them?\
+                        \n[WARN] This will affect order of elements [y/n]: ").lower()
                     if temp in ['y', 'n']:
                         break
                     fail = True
@@ -189,7 +202,8 @@ def main() -> None:
                 fail = False
                 while 1:
                     clear()
-                    if fail:  print('I don\'t understand. use [y/n]')
+                    if fail:
+                        print('I don\'t understand. use [y/n]')
                     temp = input("Array not sorted. sort? [y/n]: ").lower()
                     if temp in ['y', 'n']:
                         break
@@ -198,7 +212,8 @@ def main() -> None:
                     new.sort()
                 else:
                     clear()
-                    if tree_type == 'avl': input("[WARN] AVL constructor will sort it anyway [any]: ")
+                    if tree_type == 'avl':
+                        input("[WARN] AVL constructor will sort it anyway [any]: ")
 
             if flag:
                 clear()
@@ -219,7 +234,8 @@ def main() -> None:
                 input(f'Proceed to construct {tree_type} tree with array: {array} [any]: ')
             else:
                 input(
-                    f'Proceed to construct {tree_type} tree with array: [{", ".join(map(str, array[:5]))} ...{len(array) - 10} more... {", ".join(map(str, array[-5:]))}] [any]: ')
+                    f'Proceed to construct {tree_type} tree with array: [{", ".join(map(str, array[:5]))}'
+                    f' ...{len(array) - 10} more... {", ".join(map(str, array[-5:]))}] [any]: ')
 
             menu = 'choose func'
 
@@ -228,7 +244,8 @@ def main() -> None:
             print(f'Active tree type: {tree_type}')
 
             command = input("Enter command (h for help) [valid command/h/exit]: ")
-            if command == 'exit': break
+            if command == 'exit':
+                break
             parser(command)
     clear()
 

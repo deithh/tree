@@ -386,6 +386,9 @@ class AVLtree(Tree):
         self.bin_halv(array)
         self.back_prop()
 
+    def __str__(self):
+        return "AVL"
+
     # like baseclass but adds balance factor to labels dict(self.nodes)
     def _list_nodes(self, node: AVLnode) -> None:
         self.nodes[node.key] = f"{node.key} | {node.factor}"
@@ -438,9 +441,14 @@ class AVLtree(Tree):
             node.right = _next.right
             node.key = _next.key
 
+        if parent and parent.left:
+            parent.left.update()
+        if parent and parent.right:
+            parent.right.update()
+
         while parent:
             if (factor := parent.update()) in [1, -1]:
-                pass
+                return True
             elif factor in [-2, 2]:
                 self.rotate(parent)
                 pass
@@ -450,7 +458,6 @@ class AVLtree(Tree):
     def rotate(self, node: ND):
         l, r = node.left.factor if node.left else - 1, node.right.factor if node.right else - 1
         if node.left:
-
             if node.factor == 2 and l == 1:
                 self._ll(node)
             elif node.factor == 2 and l == -1:
@@ -461,7 +468,6 @@ class AVLtree(Tree):
                 self._rr(node)
             elif node.factor == -2 and r == 1:
                 self._rl(node)
-
 
     def _rr(self, key: int | ND) -> None:
         if type(key) == int:
@@ -543,6 +549,9 @@ class BSTtree(Tree):
     def __init__(self, array: list):
         super().__init__(Node)
         self.build_tree(array)
+
+    def __str__(self):
+        return "BST"
 
 
 ND: TypeAlias = Union[Node, AVLnode]
